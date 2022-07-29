@@ -10,7 +10,7 @@ import csv
 # Create your views here.
 
 def index(request):
-    words = OxfordWord.objects.filter(word='workaholic')
+    words = OxfordWord.objects.filter(word='yield')
 
     context = {
         'data': words
