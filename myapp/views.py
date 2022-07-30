@@ -7,13 +7,19 @@ import json
 
 import csv
 
+import random
+
 # Create your views here.
 
 def index(request):
-    words = OxfordWord.objects.filter(word='yield')
+
+    items = list(OxfordWord.objects.filter(CEFR='B2'))
+
+    # change 3 to how many random items you want
+    random_items = random.sample(items, 20)
 
     context = {
-        'data': words
+        'data': random_items
     }
 
     return render(request, 'myapp/index.html', context)
@@ -61,8 +67,8 @@ def loadwords(request):
                         pronunciation_gb = gb_mp3_filename,
                         spelling_gb = json_data['results'][0]['lexicalEntries'][0]['entries'][0]['pronunciations'][0]['phoneticSpelling'],
                         lexical_category = json_data['results'][0]['lexicalEntries'][0]['lexicalCategory']['text'],
-                        CEFR = 'C2', # Change #########################################################################
-                        topic = 'Work and business', ###############################################################
+                        CEFR = '', # Change #########################################################################
+                        topic = '', ###############################################################
                         # W
                         pronunciation_us = us_mp3_filename,
                         spelling_us = json_data_dc['results'][0]['lexicalEntries'][0]['entries'][0]['pronunciations'][1]['phoneticSpelling'],
