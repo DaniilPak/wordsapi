@@ -13,10 +13,10 @@ import random
 
 def index(request):
 
-    items = list(OxfordWord.objects.filter(CEFR='B2'))
+    items = list(OxfordWord.objects.filter(CEFR='A1', topic='Travel'))
 
     # change 3 to how many random items you want
-    random_items = random.sample(items, 20)
+    random_items = random.sample(items, 5)
 
     context = {
         'data': random_items
