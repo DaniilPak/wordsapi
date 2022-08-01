@@ -9,14 +9,20 @@ import csv
 
 import random
 
+from django.db.models import Q
+
 # Create your views here.
 
 def index(request):
+    # This filteres words that are already on learning
+    # ~ has a mirroring effect
+    filtered_oxs = OxfordWord.objects.filter(~Q(id__in=[o for o in [14201]]))
 
-    items = list(OxfordWord.objects.filter(CEFR='A1', topic='Travel'))
+    # items = list(OxfordWord.objects.filter(CEFR='A2', topic='Work and business'))
+    items = list(filtered_oxs.filter(CEFR='C1', lexical_category='Adverb', topic='Functions'))
 
     # change 3 to how many random items you want
-    random_items = random.sample(items, 5)
+    random_items = random.sample(items, 15)
 
     context = {
         'data': random_items
