@@ -41,7 +41,7 @@ class OxfordWord(models.Model):
     inflections = models.ManyToManyField(Inflection, blank=True)
 
     def __str__(self):
-        return '%s %s %s' % (self.word, self.CEFR, self.id)
+        return '%s %s %s %s' % (self.word, self.translate_ru, self.CEFR, self.id)
 
 
 

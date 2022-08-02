@@ -19,10 +19,10 @@ def index(request):
     filtered_oxs = OxfordWord.objects.filter(~Q(id__in=[o for o in [14201]]))
 
     # items = list(OxfordWord.objects.filter(CEFR='A2', topic='Work and business'))
-    items = list(filtered_oxs.filter(CEFR='C1', lexical_category='Adverb', topic='Functions'))
+    items = list(filtered_oxs.filter(CEFR='B1', lexical_category='Adjective', topic='People'))
 
     # change 3 to how many random items you want
-    random_items = random.sample(items, 15)
+    random_items = random.sample(items, 5)
 
     context = {
         'data': random_items
