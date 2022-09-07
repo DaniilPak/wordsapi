@@ -1,4 +1,6 @@
+from pyexpat import model
 from django.db import models
+from django.contrib.auth.models import User
 
 # Create your models here.
 
@@ -42,6 +44,29 @@ class OxfordWord(models.Model):
 
     def __str__(self):
         return '%s %s %s %s' % (self.word, self.translate_ru, self.CEFR, self.id)
+
+
+# Holding User Data
+
+class Topic(models.Model):
+
+    name = models.CharField(max_length=100, blank=True)
+
+    def __str__(self):
+        return '%s' % (self.name)
+
+class CEFR_Level(models.Model):
+
+    cefr_name = models.CharField(max_length=2)
+
+    def __str__(self):
+        return '%s' % (self.cefr_name)
+
+class UserSettings(models.Model):
+
+    user_token = models.CharField(max_length=256)
+    topics = models.ManyToManyField(Topic, blank=True)
+    cefrs = models.ManyToManyField(CEFR_Level, blank=True)
 
 
 

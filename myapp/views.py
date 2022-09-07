@@ -2,13 +2,24 @@ from cgitb import text
 from django.shortcuts import render
 from .models import *
 
+# Import to process
+# django data to JSON
 import requests
 import json
 
+# Used to load words
 import csv
 
+# Import to get random amount of words
 import random
 
+# To fix JSON objects and adapt from 
+# django objects to correct JSON objects
+from django.core import serializers
+
+# Imported for filtering 
+# Onjects that are already
+# learned
 from django.db.models import Q
 
 # Create your views here.
@@ -16,20 +27,66 @@ from django.db.models import Q
 def index(request):
     # This filteres words that are already on learning
     # ~ has a mirroring effect
-    filtered_oxs = OxfordWord.objects.filter(~Q(id__in=[o for o in [14201]]))
+    filtered_oxs = OxfordWord.objects.filter(~Q(id__in=[o for o in [0]]))
 
     # items = list(OxfordWord.objects.filter(CEFR='A2', topic='Work and business'))
-    items = list(filtered_oxs.filter(CEFR='B1', lexical_category='Adjective', topic='People'))
+    items = list(filtered_oxs.filter(CEFR='A1', topic='People'))
 
     # change 3 to how many random items you want
-    random_items = random.sample(items, 5)
+    # Deprecated code, don't need to take random ones
+    # instead taking first [amount of words] used
+    # words_taken_from_api = random.sample(items, 5)
 
+    # change num to take exact amount
+    words_taken_from_api = items[:5] 
+
+    # Convert to JSON
+    django_to_json_object = serializers.serialize('python', words_taken_from_api)
+
+    # Edit Native JSON to format, that App need
+
+    # Future JSON object
+    fixed_oxford_words = list()
+
+    # Processing each object
+    for idx, item in enumerate(django_to_json_object):
+        # Get current item OxfordWord object duplicate to
+        # get examples and inflections in serialized python 
+        # format
+        current_items_oxfordword_object = OxfordWord.objects.get(id=item['pk'])
+
+        # Convert django object to JSON
+        current_items_inflections = serializers.serialize('python', current_items_oxfordword_object.inflections.all())
+        current_items_examples = serializers.serialize('python', current_items_oxfordword_object.examples.all())
+
+        # Fix gotten JSON object
+        arr_for_fixed_inflections = list()
+        arr_for_fixed_examples = list()
+
+        # Fixing inflections
+        for inflection_item in current_items_inflections:
+            arr_for_fixed_inflections.append(inflection_item['fields'])
+
+        # Equaling gotten inflections to item
+        item['fields']['inflections'] = arr_for_fixed_inflections
+
+         # Fixing examples
+        for example_item in current_items_examples:
+            arr_for_fixed_examples.append(example_item['fields'])
+
+        # Equaling gotten examples to item
+        item['fields']['examples'] = arr_for_fixed_examples
+
+        fixed_oxford_words.append(item['fields'])
+
+    # Final deploy
     context = {
-        'data': random_items
+        'data': json.dumps(fixed_oxford_words)
     }
 
     return render(request, 'myapp/index.html', context)
 
+'''
 def loadwords(request):
 
     # Constants
@@ -106,3 +163,4 @@ def loadwords(request):
     }
 
     return render(request, 'myapp/index.html', context)
+'''
