@@ -22,6 +22,9 @@ from django.core import serializers
 # learned
 from django.db.models import Q
 
+# Hash 256
+from hashlib import sha256
+
 # Create your views here.
 
 def index(request):
@@ -85,6 +88,35 @@ def index(request):
     }
 
     return render(request, 'myapp/index.html', context)
+
+# Register, Login, Saving Progress
+
+def register_new_user(request):
+    
+    # Getting POSTed data
+    email = request.GET['email']
+    password = request.GET['password']
+
+    # concat email & pass to create a sha256
+    input_ = email + password
+
+    # Generate token 
+    user_token = sha256(input_.encode('utf-8')).hexdigest()
+
+    # Create UserSettings and set user token
+    user_settings = UserSettings(user_token=user_token)
+    user_settings.save()
+
+    # Giving user_token to user
+    user_token_list = {
+        'user_token': user_token
+    }
+
+    context = {
+        'user_token_list': json.dumps(user_token_list),
+    }
+
+    return render(request, 'myapp/get_user_token.html', context)
 
 '''
 def loadwords(request):
