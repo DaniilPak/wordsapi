@@ -43,21 +43,50 @@ class OxfordWord(models.Model):
     inflections = models.ManyToManyField(Inflection, blank=True)
 
     def __str__(self):
-        return '%s %s %s %s' % (self.word, self.translate_ru, self.CEFR, self.id)
+        return '%s %s %s %s %s' % (self.word, self.translate_ru, self.CEFR, self.id, self.topic)
 
 
 # Holding User Data
 
 class Topic(models.Model):
 
-    name = models.CharField(max_length=100, blank=True)
+    name = models.CharField(max_length=100,
+    # All themes are here, to add a new one, 
+    # we start from here
+    choices=[
+            ('Appearance', 'Appearance'),
+            ('Communication', 'Communication'),
+            ('Culture', 'Culture'),
+            ('Food and drink', 'Food and drink'),
+            ('Functions', 'Functions'),
+            ('Homes and buildings', 'Homes and buildings'),
+            ('Leisure', 'Leisure'),
+            ('Notions', 'Notions'),
+            ('People', 'People'),
+            ('Politics and society', 'Politics and society'),
+            ('Science and technology', 'Science and technology'),
+            ('Sports', 'Sports'),
+            ('The natural world', 'The natural world'),
+            ('Time and space', 'Time and space'),
+            ('Travel', 'Travel'),
+            ('Work and business', 'Work and business'),
+        ])
 
     def __str__(self):
         return '%s' % (self.name)
 
 class CEFR_Level(models.Model):
 
-    cefr_name = models.CharField(max_length=2)
+    cefr_name = models.CharField(max_length=2,
+    # All levels 
+    choices=[
+            ('A1', 'Beginner'),
+            ('A2', 'Elementary'),
+            ('B1', 'Intermediate'), 
+            ('B2', 'Upper-Intermediate'),
+            ('C1', 'Advanced'),
+            ('C2', 'Proficiency')
+        ])
 
     def __str__(self):
         return '%s' % (self.cefr_name)

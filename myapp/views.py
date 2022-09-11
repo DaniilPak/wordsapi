@@ -1,4 +1,5 @@
 from cgitb import text
+from unicodedata import name
 from django.shortcuts import render
 from .models import *
 
@@ -25,7 +26,21 @@ from django.db.models import Q
 # Hash 256
 from hashlib import sha256
 
+# Import to convert str array taken from 
+# Frontend to python array
+from ast import literal_eval
+
 # Create your views here.
+
+def testlook(request):
+    items = OxfordWord.objects.filter(CEFR='A1', topic='Work and business')[:1]
+
+    # Final deploy
+    context = {
+        'data': items
+    }
+
+    return render(request, 'myapp/index.html', context)
 
 def index(request):
     # This filteres words that are already on learning
@@ -106,6 +121,26 @@ def register_new_user(request):
     # Create UserSettings and set user token
     user_settings = UserSettings(user_token=user_token)
     user_settings.save()
+
+    # Digest given array in str format
+    # Levels and Topics given:
+    lvls_str = "['A1', 'B1', 'C2']"
+    # Converting string to python array
+    lvls_to_array = literal_eval(lvls_str)
+    # Iterating over this array to get the real objects
+    for lvl in lvls_to_array:
+        current_cefr_obj = CEFR_Level.objects.get(cefr_name=lvl)
+        # Finally adding Cefr to user settings object
+        user_settings.cefrs.add(current_cefr_obj)
+
+    # Now the topics time
+    topics_str = "['RUS', 'GER', 'FRA']"
+    topics_to_array = literal_eval(topics_str)
+
+    for topic in topics_to_array:
+        current_topic_obj = Topic.objects.get(name=topic)
+        user_settings.topics.add(current_topic_obj)
+
 
     # Giving user_token to user
     user_token_list = {

@@ -6,3 +6,6 @@ from .models import *
 admin.site.register(OxfordWord)
 admin.site.register(OxExample)
 admin.site.register(Inflection)
+admin.site.register(CEFR_Level)
+admin.site.register(Topic)
+admin.site.register(UserSettings)
