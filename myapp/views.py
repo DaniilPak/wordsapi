@@ -109,8 +109,12 @@ def index(request):
 def register_new_user(request):
     
     # Getting POSTed data
-    email = request.GET['email']
-    password = request.GET['password']
+    email = request.POST['email']
+    password = request.POST['password']
+
+    # Getting POSTed topics and levels
+    posted_topics = request.POST['topics']
+    posted_levels = request.POST['levels']
 
     # concat email & pass to create a sha256
     input_ = email + password
@@ -124,7 +128,8 @@ def register_new_user(request):
 
     # Digest given array in str format
     # Levels and Topics given:
-    lvls_str = "['A1', 'B1', 'C2']"
+    # This format ['A1', 'B1', 'C2']
+    lvls_str = posted_levels
     # Converting string to python array
     lvls_to_array = literal_eval(lvls_str)
     # Iterating over this array to get the real objects
@@ -134,7 +139,8 @@ def register_new_user(request):
         user_settings.cefrs.add(current_cefr_obj)
 
     # Now the topics time
-    topics_str = "['RUS', 'GER', 'FRA']"
+    # This format ['RUS', 'GER', 'FRA']
+    topics_str = posted_topics
     topics_to_array = literal_eval(topics_str)
 
     for topic in topics_to_array:
