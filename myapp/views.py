@@ -5,7 +5,7 @@ from .models import *
 
 # Import to process
 # django data to JSON
-import requests
+# import requests
 import json
 
 # Used to load words
@@ -30,25 +30,33 @@ from hashlib import sha256
 # Frontend to python array
 from ast import literal_eval
 
+# To Allow POST without csrf token
+from django.views.decorators.csrf import csrf_exempt
+
 # Create your views here.
 
-def testlook(request):
-    items = OxfordWord.objects.filter(CEFR='A1', topic='Work and business')[:1]
+def index(request, token):
+    # Get user's settings by token
+    user_settings = UserSettings.objects.get(user_token=token)
 
-    # Final deploy
-    context = {
-        'data': items
-    }
+    # Get array of topics from userSettings
+    topics = []
+    cefrs = []
 
-    return render(request, 'myapp/index.html', context)
+    # Iterate over topics
+    for topic in user_settings.topics.all():
+        topics.append(topic)
+    
+    # Iterate over cefrs
+    for level in user_settings.cefrs.all():
+        cefrs.append(level)
 
-def index(request):
     # This filteres words that are already on learning
     # ~ has a mirroring effect
     filtered_oxs = OxfordWord.objects.filter(~Q(id__in=[o for o in [0]]))
 
-    # items = list(OxfordWord.objects.filter(CEFR='A2', topic='Work and business'))
-    items = list(filtered_oxs.filter(CEFR='A1', topic='People'))
+    # 
+    items = list(filtered_oxs.filter(CEFR__in=cefrs, topic__in=topics))
 
     # change 3 to how many random items you want
     # Deprecated code, don't need to take random ones
@@ -106,6 +114,7 @@ def index(request):
 
 # Register, Login, Saving Progress
 
+@csrf_exempt
 def register_new_user(request):
     
     # Getting POSTed data
@@ -119,8 +128,8 @@ def register_new_user(request):
     # concat email & pass to create a sha256
     input_ = email + password
 
-    # Generate token 
-    user_token = sha256(input_.encode('utf-8')).hexdigest()
+    # Generate token 8 length token
+    user_token = sha256(input_.encode('utf-8')).hexdigest()[:8]
 
     # Create UserSettings and set user token
     user_settings = UserSettings(user_token=user_token)
