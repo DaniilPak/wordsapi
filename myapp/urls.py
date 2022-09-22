@@ -5,5 +5,7 @@ from . import views
 
 urlpatterns = [
     path('<str:token>', views.index, name='index'),
-    path('reguser', views.register_new_user, name='reguser'),
+    path('reguser/new', views.register_new_user, name='reguser'),
+    path('my/saveword', views.save_learned_words, name='saveword'),
+    # path('loadwords', views.loadwords, name='loadwords'),
 ]

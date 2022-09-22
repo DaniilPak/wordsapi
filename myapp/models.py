@@ -97,5 +97,9 @@ class UserSettings(models.Model):
     topics = models.ManyToManyField(Topic, blank=True)
     cefrs = models.ManyToManyField(CEFR_Level, blank=True)
 
+    # Saved words
+    # (Which are learned by user)
+    learned_words = models.ManyToManyField(OxfordWord, blank=True)
+
 
 
