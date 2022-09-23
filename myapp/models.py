@@ -2,6 +2,8 @@ from pyexpat import model
 from django.db import models
 from django.contrib.auth.models import User
 
+from datetime import datetime, timezone
+
 # Create your models here.
 
 # Example model for examples in Oxford Word
@@ -91,6 +93,12 @@ class CEFR_Level(models.Model):
     def __str__(self):
         return '%s' % (self.cefr_name)
 
+# Repeat word
+class RepeatWord(models.Model):
+    oxford_word = models.ForeignKey(OxfordWord, blank=True, on_delete=models.CASCADE)
+    countdown = models.DateTimeField(auto_now=True)
+    interval = models.IntegerField(blank=True, default=0)
+
 class UserSettings(models.Model):
 
     user_token = models.CharField(max_length=256)
@@ -101,5 +109,10 @@ class UserSettings(models.Model):
     # (Which are learned by user)
     learned_words = models.ManyToManyField(OxfordWord, blank=True)
 
+    # Time to Repeat words
+    repeat_words = models.ManyToManyField(RepeatWord, blank=True, related_name='repeatwords')
+
+    # Hard words
+    hard_words = models.ManyToManyField(OxfordWord, blank=True, related_name='hardwords')
 
 
