@@ -1,4 +1,5 @@
 from pyexpat import model
+from unicodedata import name
 from django.db import models
 from django.contrib.auth.models import User
 
@@ -56,22 +57,22 @@ class Topic(models.Model):
     # All themes are here, to add a new one, 
     # we start from here
     choices=[
-            ('Appearance', 'Appearance'),
-            ('Communication', 'Communication'),
-            ('Culture', 'Culture'),
-            ('Food and drink', 'Food and drink'),
-            ('Functions', 'Functions'),
-            ('Homes and buildings', 'Homes and buildings'),
-            ('Leisure', 'Leisure'),
-            ('Notions', 'Notions'),
-            ('People', 'People'),
-            ('Politics and society', 'Politics and society'),
-            ('Science and technology', 'Science and technology'),
-            ('Sports', 'Sports'),
-            ('The natural world', 'The natural world'),
-            ('Time and space', 'Time and space'),
-            ('Travel', 'Travel'),
-            ('Work and business', 'Work and business'),
+            ('Appearance', 'Проявление'),
+            ('Communication', 'Коммуникация'),
+            ('Culture', 'Культура'),
+            ('Food and drink', 'Еда и напитки'),
+            ('Functions', 'Функции'),
+            ('Homes and buildings', 'Дома и строения'),
+            ('Leisure', 'Свободное время'),
+            ('Notions', 'Разное'),
+            ('People', 'Люди'),
+            ('Politics and society', 'Политика и народ'),
+            ('Science and technology', 'Наука и технологии'),
+            ('Sports', 'Спорт'),
+            ('The natural world', 'Окружающий мир'),
+            ('Time and space', 'Время и космос'),
+            ('Travel', 'Путешествия'),
+            ('Work and business', 'Работа и бизнес'),
         ])
 
     def __str__(self):
@@ -79,7 +80,7 @@ class Topic(models.Model):
 
 class CEFR_Level(models.Model):
 
-    cefr_name = models.CharField(max_length=2,
+    name = models.CharField(max_length=2,
     # All levels 
     choices=[
             ('A1', 'Beginner'),
@@ -91,7 +92,7 @@ class CEFR_Level(models.Model):
         ])
 
     def __str__(self):
-        return '%s' % (self.cefr_name)
+        return '%s' % (self.name)
 
 # Repeat word
 class RepeatWord(models.Model):

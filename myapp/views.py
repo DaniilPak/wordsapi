@@ -70,7 +70,7 @@ def register_new_user(request):
     lvls_to_array = literal_eval(lvls_str)
     # Iterating over this array to get the real objects
     for lvl in lvls_to_array:
-        current_cefr_obj = CEFR_Level.objects.get(cefr_name=lvl)
+        current_cefr_obj = CEFR_Level.objects.get(name=lvl)
         # Finally adding Cefr to user settings object
         user_settings.cefrs.add(current_cefr_obj)
 
@@ -183,7 +183,6 @@ def index(request, token):
     }
 
     return render(request, 'myapp/index.html', context)
-
 
 # This view gets learned words 
 # and sets to UserSettings accountant
@@ -404,3 +403,267 @@ def hard_word(request):
     }
 
     return render(request, 'myapp/index.html', context)
+
+# User Settings changing after registration
+
+# Change levels after registration
+def change_level(request):
+    # GET token
+    token = request.POST['token']
+
+    # Get new levels array (str format)
+    new_levels = request.POST['levels']
+
+    # Handle current UserSettings object by token
+    user_settings = UserSettings.objects.get(user_token=token)
+
+    # Digest given array in str format
+    # Levels and Topics given:
+    # This format ['A1', 'B1', 'C2']
+    lvls_str = new_levels
+
+    # Converting string to python array
+    lvls_to_array = literal_eval(lvls_str)
+
+    # Clear levels in UserSettings
+    user_settings.cefrs.clear()
+
+    # Iterating over this array to get the real objects
+    for lvl in lvls_to_array:
+        current_cefr_obj = CEFR_Level.objects.get(name=lvl)
+        # Finally adding Cefr to user settings object
+        user_settings.cefrs.add(current_cefr_obj)
+
+    # Formality
+    return HttpResponse("Query complete.")
+
+# Change topics after registration
+def change_topic(request):
+    # GET token
+    token = request.POST['token']
+
+    # Get new levels array (str format)
+    new_topics = request.POST['topics']
+
+    # Handle current UserSettings object by token
+    user_settings = UserSettings.objects.get(user_token=token)
+
+    # Digest given array in str format
+    # Levels and Topics given:
+    # This format ['A1', 'B1', 'C2']
+    topics_str = new_topics
+
+    # Converting string to python array
+    topics_to_array = literal_eval(topics_str)
+
+    # Clear levels in UserSettings
+    user_settings.topics.clear()
+
+    # Iterating over this array to get the real objects
+    for topic in topics_to_array:
+        current_topic = Topic.objects.get(name=topic)
+        # Finally adding Cefr to user settings object
+        user_settings.topics.add(current_topic)
+
+    # Formality
+    return HttpResponse("Query complete.")
+
+# Get users topics
+def get_users_topic(request):
+    # GET token
+    token = request.GET['token']
+
+    # Handle current UserSettings object by token
+    user_settings = UserSettings.objects.get(user_token=token)
+    user_topics = user_settings.topics.all()
+
+    all_topics = Topic.objects.all()
+
+    # Future JSON object
+    fixed_topics = list()
+
+    # Processing each object
+    for idx, item in enumerate(serializers.serialize('python', all_topics)):
+        # Check if my topic checked in all topics
+        checked = False
+        for ut in user_topics:
+            if ut.name == item['fields']['name']:
+                checked = True
+
+        topic = Topic.objects.get(name=item['fields']['name'])
+        item['fields']['repr'] = topic.get_name_display()
+        item['fields']['checked'] = checked
+        fixed_topics.append(item['fields'])
+
+    # JSON object will have checked boolean true, if 
+    # Topic already choosed by user
+
+    # Final deploy
+    context = {
+        'data': json.dumps(fixed_topics)
+    }
+
+    return render(request, 'myapp/index.html', context)
+
+# Get users topics
+def get_users_level(request):
+    # GET token
+    token = request.GET['token']
+
+    # Handle current UserSettings object by token
+    user_settings = UserSettings.objects.get(user_token=token)
+    user_cefrs = user_settings.cefrs.all()
+
+    all_cefrs = CEFR_Level.objects.all()
+
+    # Future JSON object
+    fixed_levels = list()
+
+    # Processing each object
+    for idx, item in enumerate(serializers.serialize('python', all_cefrs)):
+        # Check if my topic checked in all topics
+        checked = False
+        for ul in user_cefrs:
+            if ul.name == item['fields']['name']:
+                checked = True
+
+        topic = CEFR_Level.objects.get(name=item['fields']['name'])
+        item['fields']['repr'] = topic.get_name_display()
+        item['fields']['checked'] = checked
+        fixed_levels.append(item['fields'])
+
+    # JSON object will have checked boolean true, if 
+    # Topic already choosed by user
+
+    # Final deploy
+    context = {
+        'data': json.dumps(fixed_levels)
+    }
+
+    return render(request, 'myapp/index.html', context)
+
+# Get users words amount 
+def get_users_my_words_amount(request):
+    # GET token
+    token = request.GET['token']
+
+    # Handle current UserSettings object by token
+    user_settings = UserSettings.objects.get(user_token=token)
+
+    mywords_count = user_settings.learned_words.count()
+
+    arr_for_deploy = {
+        'count': mywords_count
+    }
+
+    # Final deploy
+    context = {
+        'data': json.dumps(arr_for_deploy)
+    }
+
+    return render(request, 'myapp/index.html', context)
+
+# Get users repeat words amount 
+def get_users_repeat_words_amount(request):
+    # GET token
+    token = request.GET['token']
+
+    # Handle current UserSettings object by token
+    user_settings = UserSettings.objects.get(user_token=token)
+
+    mywords_count = user_settings.repeat_words.count()
+
+    arr_for_deploy = {
+        'count': mywords_count
+    }
+
+    # Final deploy
+    context = {
+        'data': json.dumps(arr_for_deploy)
+    }
+
+    return render(request, 'myapp/index.html', context)
+
+# Get users repeat words amount 
+def get_users_hard_words_amount(request):
+    # GET token
+    token = request.GET['token']
+
+    # Handle current UserSettings object by token
+    user_settings = UserSettings.objects.get(user_token=token)
+
+    mywords_count = user_settings.hard_words.count()
+
+    arr_for_deploy = {
+        'count': mywords_count
+    }
+
+    # Final deploy
+    context = {
+        'data': json.dumps(arr_for_deploy)
+    }
+
+    return render(request, 'myapp/index.html', context)
+
+### MISC ###
+
+# Get dummy words
+def get_dummy(request):
+
+    count = request.GET['count']
+
+    owords = OxfordWord.objects.all()
+
+    random_owords = random.sample(list(owords), int(count))
+
+    # Convert to JSON
+    django_to_json_object = serializers.serialize('python', random_owords)
+
+    # Edit Native JSON to format, that App need
+
+    # Future JSON object
+    fixed_oxford_words = list()
+
+    # Processing each object
+    for idx, item in enumerate(django_to_json_object):
+        # Get current item OxfordWord object duplicate to
+        # get examples and inflections in serialized python 
+        # format
+        current_items_oxfordword_object = OxfordWord.objects.get(id=item['pk'])
+
+        # Convert django object to JSON
+        current_items_inflections = serializers.serialize('python', current_items_oxfordword_object.inflections.all())
+        current_items_examples = serializers.serialize('python', current_items_oxfordword_object.examples.all())
+
+        # Fix gotten JSON object
+        arr_for_fixed_inflections = list()
+        arr_for_fixed_examples = list()
+
+        # Fixing inflections
+        for inflection_item in current_items_inflections:
+            arr_for_fixed_inflections.append(inflection_item['fields'])
+
+        # Equaling gotten inflections to item
+        item['fields']['inflections'] = arr_for_fixed_inflections
+
+         # Fixing examples
+        for example_item in current_items_examples:
+            arr_for_fixed_examples.append(example_item['fields'])
+
+        # Equaling gotten examples to item
+        item['fields']['examples'] = arr_for_fixed_examples
+        
+        # Setting id to word object
+        item['fields']['id'] = item['pk']
+
+        fixed_oxford_words.append(item['fields'])
+
+    # Final deploy
+    context = {
+        'data': json.dumps(fixed_oxford_words)
+    }
+
+    return render(request, 'myapp/index.html', context)
+
+
+
