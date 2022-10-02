@@ -648,10 +648,10 @@ def renew_repeated_words(request):
 @csrf_exempt
 def detect_hard_words(request):
     # GET token 
-    token = request.GET['token']
+    token = request.POST['token']
 
     # Get array of repeated words
-    hard_ids = request.GET['hard']
+    hard_ids = request.POST['hard']
 
     # Format array with words
     hard_ids_to_array = literal_eval(hard_ids)
@@ -676,10 +676,10 @@ def detect_hard_words(request):
 @csrf_exempt
 def delete_hard_words(request):
     # GET token 
-    token = request.GET['token']
+    token = request.POST['token']
 
     # Get array of repeated words
-    abort_hard = request.GET['aborthard']
+    abort_hard = request.POST['aborthard']
 
     # Format array with words
     abort_hard_to_array = literal_eval(abort_hard)
