@@ -18,5 +18,9 @@ urlpatterns = [
     path('my/wordscount', views.get_users_my_words_amount, name='mywordsamount'),
     path('my/repeatwordscount', views.get_users_repeat_words_amount, name='mywordsamount'),
     path('my/hardwordscount', views.get_users_hard_words_amount, name='mywordsamount'),
+    path('my/renewrepeatwords', views.renew_repeated_words, name='renewrepeatwords'),
+    path('my/detecthardwords', views.detect_hard_words, name='detecthardwords'),
+    path('my/deletehardwords', views.delete_hard_words, name='deletehardwords'),
+    
     # path('loadwords', views.loadwords, name='loadwords'),
 ]

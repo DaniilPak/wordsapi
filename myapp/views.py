@@ -22,7 +22,7 @@ from django.core import serializers
 # Imported for filtering 
 # Onjects that are already
 # learned
-from django.db.models import Q
+from django.db.models import Q, F
 
 # Hash 256
 from hashlib import sha256
@@ -294,7 +294,7 @@ def repeat_words(request):
     for r_word in repeat_words:
         # Interval formula Y = 2X + 1
         y_days = (2 * r_word.interval) + 1
-        if now - r_word.countdown > timedelta(minutes=y_days):
+        if now - r_word.countdown > timedelta(days=y_days):
             timeleft_words.append(r_word.oxford_word)
 
     # Format to right JSON
@@ -571,10 +571,23 @@ def get_users_repeat_words_amount(request):
     # Handle current UserSettings object by token
     user_settings = UserSettings.objects.get(user_token=token)
 
-    mywords_count = user_settings.repeat_words.count()
+    # Check current time
+    now = datetime.now(timezone.utc)
+
+    repeat_words = user_settings.repeat_words.all()
+
+    # Future JSON object
+    timeleft_words = 0
+
+    # Check how much time left (in seconds)
+    for r_word in repeat_words:
+        # Interval formula Y = 2X + 1
+        y_days = (2 * r_word.interval) + 1
+        if now - r_word.countdown > timedelta(days=y_days):
+            timeleft_words += 1
 
     arr_for_deploy = {
-        'count': mywords_count
+        'count': timeleft_words
     }
 
     # Final deploy
@@ -604,6 +617,86 @@ def get_users_hard_words_amount(request):
     }
 
     return render(request, 'myapp/index.html', context)
+
+
+### Get repeated words, and increase their interval ###
+@csrf_exempt
+def renew_repeated_words(request):
+    # GET token 
+    token = request.POST['token']
+
+    # Get array of repeated words
+    repeated_ids = request.POST['repeated']
+
+    # Format array with words
+    repeated_ids_to_array = literal_eval(repeated_ids)
+
+    # Transform word ids to real objects
+    repeated_words_objects = OxfordWord.objects.filter(Q(id__in=repeated_ids_to_array))
+    
+    # Handle current UserSettings object by token
+    user_settings = UserSettings.objects.get(user_token=token)
+
+    # Get repeat words using filter by ids
+    user_settings.repeat_words.all().filter(Q(oxford_word__in=repeated_words_objects)).update(interval=F('interval') + 1)
+
+    # End of story
+
+    return HttpResponse("Query complete.")
+
+### Also detect hard ones and store them
+@csrf_exempt
+def detect_hard_words(request):
+    # GET token 
+    token = request.GET['token']
+
+    # Get array of repeated words
+    hard_ids = request.GET['hard']
+
+    # Format array with words
+    hard_ids_to_array = literal_eval(hard_ids)
+
+    # Transform word ids to real objects
+    hard_words_objects = OxfordWord.objects.filter(Q(id__in=hard_ids_to_array))
+    
+    # Handle current UserSettings object by token
+    user_settings = UserSettings.objects.get(user_token=token)
+
+    # Save detected hard words to user settings model
+    for hwo in hard_words_objects:
+        user_settings.hard_words.add(hwo)
+        user_settings.save()
+    
+    # End of story
+
+    return HttpResponse("Query complete.")
+
+### Lets add removing hard words (after successfull repeating)
+### Also detect hard ones and store them
+@csrf_exempt
+def delete_hard_words(request):
+    # GET token 
+    token = request.GET['token']
+
+    # Get array of repeated words
+    abort_hard = request.GET['aborthard']
+
+    # Format array with words
+    abort_hard_to_array = literal_eval(abort_hard)
+
+    # Transform word ids to real objects
+    hard_words_objects = OxfordWord.objects.filter(Q(id__in=abort_hard_to_array))
+    
+    # Handle current UserSettings object by token
+    user_settings = UserSettings.objects.get(user_token=token)
+
+    for hwo in hard_words_objects:
+        user_settings.hard_words.remove(hwo)
+    
+    # End of story
+
+    return HttpResponse("Query complete.")
+
 
 ### MISC ###
 
@@ -664,6 +757,4 @@ def get_dummy(request):
     }
 
     return render(request, 'myapp/index.html', context)
-
-
 
