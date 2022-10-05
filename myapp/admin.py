@@ -10,3 +10,11 @@ admin.site.register(CEFR_Level)
 admin.site.register(Topic)
 admin.site.register(UserSettings)
 admin.site.register(RepeatWord)
+
+### COURSES ###
+admin.site.register(Course)
+admin.site.register(Data)
+admin.site.register(SubCourse)
+admin.site.register(ServerChoice)
+admin.site.register(VideoObject)
+admin.site.register(CraftStack)

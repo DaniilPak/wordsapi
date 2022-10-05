@@ -23,4 +23,8 @@ urlpatterns = [
     path('my/deletehardwords', views.delete_hard_words, name='deletehardwords'),
     
     # path('loadwords', views.loadwords, name='loadwords'),
+
+    ### COURSES ###
+    path('courses/english', views.index_courses, name='courses'),
+    path('courses/english/craft/<int:craft_id>', views.get_craft, name='courses_craft'),
 ]
