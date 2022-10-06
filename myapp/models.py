@@ -49,7 +49,7 @@ class OxfordWord(models.Model):
         return '%s %s %s %s %s' % (self.word, self.translate_ru, self.CEFR, self.id, self.topic)
 
 
-# Holding User Data
+# Words data
 
 class Topic(models.Model):
 
@@ -100,22 +100,6 @@ class RepeatWord(models.Model):
     countdown = models.DateTimeField(auto_now=True)
     interval = models.IntegerField(blank=True, default=0)
 
-class UserSettings(models.Model):
-
-    user_token = models.CharField(max_length=256)
-    topics = models.ManyToManyField(Topic, blank=True)
-    cefrs = models.ManyToManyField(CEFR_Level, blank=True)
-
-    # Saved words
-    # (Which are learned by user)
-    learned_words = models.ManyToManyField(OxfordWord, blank=True)
-
-    # Time to Repeat words
-    repeat_words = models.ManyToManyField(RepeatWord, blank=True, related_name='repeatwords')
-
-    # Hard words
-    hard_words = models.ManyToManyField(OxfordWord, blank=True, related_name='hardwords')
-
 ### Courses ###
 
 # Sections & Courses & SubCourses
@@ -124,6 +108,9 @@ class SubCourse(models.Model):
     id = models.AutoField(primary_key=True)
     subcourse_title = models.CharField(max_length=100)
     api_link = models.URLField()
+
+    def __repr__(self) -> str:
+        return 'Subcourse %s id: %s' % (self.subcourse_title, self.id)
 
 class Data(models.Model):
     id = models.AutoField(primary_key=True)
@@ -170,3 +157,23 @@ class CraftStack(models.Model):
 
     def __str__(self) -> str:
         return '%s' % (self.id)
+
+### User Data holder
+class UserSettings(models.Model):
+
+    user_token = models.CharField(max_length=256)
+    topics = models.ManyToManyField(Topic, blank=True)
+    cefrs = models.ManyToManyField(CEFR_Level, blank=True)
+
+    # Saved words
+    # (Which are learned by user)
+    learned_words = models.ManyToManyField(OxfordWord, blank=True)
+
+    # Time to Repeat words
+    repeat_words = models.ManyToManyField(RepeatWord, blank=True, related_name='repeatwords')
+
+    # Hard words
+    hard_words = models.ManyToManyField(OxfordWord, blank=True, related_name='hardwords')
+
+    # Subcourses that user already learned
+    learned_courses = models.ManyToManyField(SubCourse, blank=True)

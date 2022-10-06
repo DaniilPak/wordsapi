@@ -766,11 +766,16 @@ def get_dummy(request):
 
 # API for courses & videotests(videocards)
 
-def index_courses(request):
+def index_courses(request, token):
+
+    # Hook current UserSettings model to identify user
+    user_settings = UserSettings.objects.get(user_token=token)
+
     course_objects = serializers.serialize('json', Course.objects.all())
     course_objects_to_json = json.loads(course_objects)
     # New future json object
     courses_fixed_json = list()
+
     # Fixing Course objects
     for idx, item in enumerate(course_objects_to_json):
         # New stuff
@@ -778,6 +783,7 @@ def index_courses(request):
         course_datas = serializers.serialize('python', current_course.data.all())
         item['fields']['section'] = current_course.section
         item['fields']['data'] = course_datas
+
         # Fixing Data objects
         for idx2, data_item in enumerate(course_datas):
             # Hooking current Data object from Data object primary key  
@@ -790,11 +796,23 @@ def index_courses(request):
             # Hooking current SubCourses object from current Data object
             current_datas_subcourses =  serializers.serialize('python', current_data.sub_courses.all())
             item['fields']['data'][idx2]['sub_courses'] = current_datas_subcourses
+
             # Fixing SubCourse objects
             for idx3, subcourse_item in enumerate(current_datas_subcourses):
                 current_subcourse = SubCourse.objects.get(pk=json.loads(json.dumps(subcourse_item))['pk'])
                 y = serializers.serialize('python', [current_subcourse])
                 item['fields']['data'][idx2]['sub_courses'][idx3] = y[0]['fields']
+                # Checking if subcourse been learned by User
+                # Put some logic here ...
+                users_learned_subcourses = user_settings.learned_courses.all()
+                # Find if user have current subcourse
+                learned = False
+                if current_subcourse in users_learned_subcourses:
+                    learned = True
+
+                item['fields']['data'][idx2]['sub_courses'][idx3]['learned'] = learned
+                # Add pk of subcourse
+                item['fields']['data'][idx2]['sub_courses'][idx3]['id'] = current_subcourse.pk
 
         # Saving all processed data to future json object
         courses_fixed_json.append(item['fields'])
@@ -803,7 +821,6 @@ def index_courses(request):
         'data': json.dumps(courses_fixed_json),
     }
     return render(request, 'myapp/index.html', context)
-
 
 # Get Video Object and craft a 
 # course with given object's data
