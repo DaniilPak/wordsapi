@@ -700,6 +700,55 @@ def delete_hard_words(request):
 
 ### MISC ###
 
+# Get all level (for registration)
+def get_all_level(request):
+
+    all_cefrs = CEFR_Level.objects.all()
+
+    # Future JSON object
+    fixed_levels = list()
+
+    # Processing each object
+    for idx, item in enumerate(serializers.serialize('python', all_cefrs)):
+        topic = CEFR_Level.objects.get(name=item['fields']['name'])
+        item['fields']['repr'] = topic.get_name_display()
+        fixed_levels.append(item['fields'])
+
+    # JSON object will have checked boolean true, if 
+    # Topic already choosed by user
+
+    # Final deploy
+    context = {
+        'data': json.dumps(fixed_levels)
+    }
+
+    return render(request, 'myapp/index.html', context)
+
+# Get users topics
+def get_all_topic(request):
+
+    all_topics = Topic.objects.all()
+
+    # Future JSON object
+    fixed_topics = list()
+
+    # Processing each object
+    for idx, item in enumerate(serializers.serialize('python', all_topics)):
+        topic = Topic.objects.get(name=item['fields']['name'])
+        item['fields']['repr'] = topic.get_name_display()
+        fixed_topics.append(item['fields'])
+
+    # JSON object will have checked boolean true, if 
+    # Topic already choosed by user
+
+    # Final deploy
+    context = {
+        'data': json.dumps(fixed_topics)
+    }
+
+    return render(request, 'myapp/index.html', context)
+
+
 # Get dummy words
 def get_dummy(request):
 

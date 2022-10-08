@@ -21,6 +21,8 @@ urlpatterns = [
     path('my/renewrepeatwords', views.renew_repeated_words, name='renewrepeatwords'),
     path('my/detecthardwords', views.detect_hard_words, name='detecthardwords'),
     path('my/deletehardwords', views.delete_hard_words, name='deletehardwords'),
+    path('misc/levels', views.get_all_level, name='getlevels'),
+    path('misc/topics', views.get_all_topic, name='gettopics'),
     
     # path('loadwords', views.loadwords, name='loadwords'),
 
