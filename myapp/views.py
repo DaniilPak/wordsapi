@@ -59,7 +59,8 @@ def register_new_user(request):
     user_token = sha256(input_.encode('utf-8')).hexdigest()[:8]
 
     # Create UserSettings and set user token
-    user_settings = UserSettings(user_token=user_token)
+    user_settings = UserSettings(user_token=user_token, email=email)
+    # Record user's email
     user_settings.save()
 
     # Digest given array in str format
@@ -808,8 +809,67 @@ def get_dummy(request):
     return render(request, 'myapp/index.html', context)
 
 
+'''
+Registration stuff:
+- Check if email already exists
+- Auth into existing account 
+'''
+def check_if_email_exists(request, email):
 
+    '''
+    Getting requested email to check from url
+    '''
+    isExists = True
 
+    try:
+        user_settings = UserSettings.objects.get(email=email)
+    except UserSettings.DoesNotExist:
+        isExists = False
+
+    arr_for_deploy = {
+        'email_exists': isExists
+    }
+
+    # Final deploy
+    context = {
+        'data': json.dumps(arr_for_deploy)
+    }
+
+    return render(request, 'myapp/index.html', context)
+
+def auth_into_existing_account(request):
+
+    email = request.POST['email']
+    password = request.POST['password']
+
+    # concat email & pass to create a sha256
+    input_ = email + password
+
+    # Generate token 8 length token
+    given_sha256 = sha256(input_.encode('utf-8')).hexdigest()[:8]
+
+    # Check if that token exists in system
+    isCredentialsCorrect = True
+    user_token = ''
+
+    try:
+        user_settings = UserSettings.objects.get(user_token=given_sha256)
+        user_token = user_settings.user_token
+    except UserSettings.DoesNotExist:
+        isCredentialsCorrect = False
+        user_token = 'notexist'
+
+    arr_for_deploy = {
+        'email_exists': isCredentialsCorrect,
+        'user_token': user_token
+    }
+
+    # Final deploy
+    context = {
+        'data': json.dumps(arr_for_deploy)
+    }
+
+    return render(request, 'myapp/index.html', context)
 
 ### COURSES ###
 

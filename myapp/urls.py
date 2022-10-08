@@ -23,6 +23,8 @@ urlpatterns = [
     path('my/deletehardwords', views.delete_hard_words, name='deletehardwords'),
     path('misc/levels', views.get_all_level, name='getlevels'),
     path('misc/topics', views.get_all_topic, name='gettopics'),
+    path('auth/emailexists/<str:email>', views.check_if_email_exists, name='emailexits'),
+    path('auth/login', views.auth_into_existing_account, name='authaccount'),
     
     # path('loadwords', views.loadwords, name='loadwords'),
 

@@ -162,6 +162,7 @@ class CraftStack(models.Model):
 class UserSettings(models.Model):
 
     user_token = models.CharField(max_length=256)
+    email = models.CharField(max_length=256, blank=True)
     topics = models.ManyToManyField(Topic, blank=True)
     cefrs = models.ManyToManyField(CEFR_Level, blank=True)
 
