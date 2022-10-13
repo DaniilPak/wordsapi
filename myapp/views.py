@@ -112,12 +112,12 @@ def index(request, token):
     for level in user_settings.cefrs.all():
         cefrs.append(level)
 
-    # Handle learned words
-    learned_words = user_settings.learned_words.all()
+    # Handle passed words and filter them by levels and topics
+    passed_words = user_settings.passed_words.all().filter(CEFR__in=cefrs, topic__in=topics)
 
-    # Iterate over learned words to create array with only ids
+    # Iterate over passed words to create array with only ids
     ids = []
-    for lw in learned_words:
+    for lw in passed_words:
         ids.append(lw.id)
 
     # This filteres words that are already on learning
@@ -133,8 +133,13 @@ def index(request, token):
     # words_taken_from_api = random.sample(items, 5)
     # or items[:10] just column
 
+    # What if item lenght is less that 10?
+    # Do this logic:
+    objects_amount = len(items) if len(items) < 10 else 10
+
+
     # change num to take exact amount
-    words_taken_from_api = random.sample(items, 10)
+    words_taken_from_api = random.sample(items, objects_amount)
 
     # Convert to JSON
     django_to_json_object = serializers.serialize('python', words_taken_from_api)
@@ -188,6 +193,100 @@ def index(request, token):
 # This view gets learned words 
 # and sets to UserSettings accountant
 
+# Get More words to Flat List
+@csrf_exempt
+def get_more_words(request):
+
+    # GET token 
+    token = request.POST['token']
+
+    # Get array of learned words
+    learned_ids = request.POST['learned']
+    
+    # Handle current UserSettings object by token
+    user_settings = UserSettings.objects.get(user_token=token)
+
+    # Format array with words
+    learned_ids_to_array = literal_eval(learned_ids)
+
+    # Get array of topics from userSettings
+    topics = []
+    cefrs = []
+
+    # Iterate over topics
+    for topic in user_settings.topics.all():
+        topics.append(topic)
+    
+    # Iterate over cefrs
+    for level in user_settings.cefrs.all():
+        cefrs.append(level)
+
+    # Id not in learned ids to array
+    filtered_oxs = OxfordWord.objects.filter(~Q(id__in=learned_ids_to_array))
+    
+    items = list(filtered_oxs.filter(CEFR__in=cefrs, topic__in=topics))
+
+    # change 3 to how many random items you want
+    # Deprecated code, don't need to take random ones
+    # instead taking first [amount of words] used
+    # words_taken_from_api = random.sample(items, 5)
+    # or items[:10] just column
+
+    # What if item lenght is less that 10?
+    # Do this logic:
+    objects_amount = len(items) if len(items) < 10 else 10
+
+    # change num to take exact amount
+    words_taken_from_api = random.sample(items, objects_amount)
+
+    # Convert to JSON
+    django_to_json_object = serializers.serialize('python', words_taken_from_api)
+
+    # Future JSON object
+    fixed_oxford_words = list()
+
+    # Processing each object
+    for idx, item in enumerate(django_to_json_object):
+        # Get current item OxfordWord object duplicate to
+        # get examples and inflections in serialized python 
+        # format
+        current_items_oxfordword_object = OxfordWord.objects.get(id=item['pk'])
+
+        # Convert django object to JSON
+        current_items_inflections = serializers.serialize('python', current_items_oxfordword_object.inflections.all())
+        current_items_examples = serializers.serialize('python', current_items_oxfordword_object.examples.all())
+
+        # Fix gotten JSON object
+        arr_for_fixed_inflections = list()
+        arr_for_fixed_examples = list()
+
+        # Fixing inflections
+        for inflection_item in current_items_inflections:
+            arr_for_fixed_inflections.append(inflection_item['fields'])
+
+        # Equaling gotten inflections to item
+        item['fields']['inflections'] = arr_for_fixed_inflections
+
+         # Fixing examples
+        for example_item in current_items_examples:
+            arr_for_fixed_examples.append(example_item['fields'])
+
+        # Equaling gotten examples to item
+        item['fields']['examples'] = arr_for_fixed_examples
+        
+        # Setting id to word object
+        item['fields']['id'] = item['pk']
+
+        fixed_oxford_words.append(item['fields'])
+
+
+    # Final deploy
+    context = {
+        'data': json.dumps(fixed_oxford_words)
+    }
+
+    return render(request, 'myapp/index.html', context)
+
 @csrf_exempt
 def save_learned_words(request):
     # GET token 
@@ -213,6 +312,34 @@ def save_learned_words(request):
             r_word = RepeatWord.objects.create(oxford_word=oxford_word)
             user_settings.repeat_words.add(r_word)
         
+    return HttpResponse("Query complete.")
+
+# Save passed words
+### Dont ever forget csrf_exempt
+@csrf_exempt
+def save_passed_words(request):
+    # GET token 
+    token = request.POST['token']
+
+    # Get array of repeated words
+    hard_ids = request.POST['passed']
+
+    # Format array with words
+    hard_ids_to_array = literal_eval(hard_ids)
+
+    # Transform word ids to real objects
+    hard_words_objects = OxfordWord.objects.filter(Q(id__in=hard_ids_to_array))
+    
+    # Handle current UserSettings object by token
+    user_settings = UserSettings.objects.get(user_token=token)
+
+    # Save detected hard words to user settings model
+    for hwo in hard_words_objects:
+        user_settings.passed_words.add(hwo)
+        user_settings.save()
+    
+    # End of story
+
     return HttpResponse("Query complete.")
 
 # API All my words
@@ -808,7 +935,6 @@ def get_dummy(request):
 
     return render(request, 'myapp/index.html', context)
 
-
 '''
 Registration stuff:
 - Check if email already exists
@@ -1027,3 +1153,22 @@ def get_craft(request, craft_id):
     }
 
     return render(request, 'myapp/index.html', context)
+
+# Save passed course 
+
+def save_learned_subcourse(request):
+    # get users token from post cause of secure
+    token = request.POST['token']
+    # Handle user settings by token
+    user_settings = UserSettings.objects.get(user_token=token)
+    # Get current subcourse by its id
+    subcourse_id = request.POST['subcourse_id']
+    # Handle subcourse object by id
+    sub_course = SubCourse.objects.get(id=subcourse_id)
+
+    # Assign subcourse to user settings
+    user_settings.learned_courses.add(sub_course)
+    user_settings.save()
+
+    return HttpResponse('Query complete!')
+

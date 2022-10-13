@@ -25,6 +25,13 @@ urlpatterns = [
     path('misc/topics', views.get_all_topic, name='gettopics'),
     path('auth/emailexists/<str:email>', views.check_if_email_exists, name='emailexits'),
     path('auth/login', views.auth_into_existing_account, name='authaccount'),
+    path('my/getmorewords', views.get_more_words, name='getmorewords'),
+
+    # Record passed subcourse
+    path('misc/savesubcourse', views.save_learned_subcourse, name='savelearnedsubcourse'),
+
+    # Record passed words
+    path('my/savepassedwords', views.save_passed_words, name='savepassedwords'),
     
     # path('loadwords', views.loadwords, name='loadwords'),
 

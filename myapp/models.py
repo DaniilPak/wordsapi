@@ -177,4 +177,7 @@ class UserSettings(models.Model):
     hard_words = models.ManyToManyField(OxfordWord, blank=True, related_name='hardwords')
 
     # Subcourses that user already learned
-    learned_courses = models.ManyToManyField(SubCourse, blank=True)
+    learned_courses = models.ManyToManyField(SubCourse, blank=True, related_name='learnedcourses')
+
+    # Passed words
+    passed_words = models.ManyToManyField(OxfordWord, blank=True, related_name='passedwords')
