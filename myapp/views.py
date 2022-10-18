@@ -1,6 +1,5 @@
-from cgitb import text
+import email
 from django.http import HttpResponse
-from unicodedata import name
 from django.shortcuts import render
 from .models import *
 
@@ -991,6 +990,57 @@ def auth_into_existing_account(request):
     }
 
     # Final deploy
+    context = {
+        'data': json.dumps(arr_for_deploy)
+    }
+
+    return render(request, 'myapp/index.html', context)
+
+def auth_via_google(request):
+    '''
+    Get user's google email and check if it's already exists
+    if yes: get users existing token and send it
+    if not: create new token and send it
+    '''
+    google_mail = request.POST['googlemail']
+    google_name = request.POST['googlename']
+
+    posted_topics = request.POST['topics']
+    posted_levels = request.POST['levels']
+
+    user_exists = True
+    user_token = ''
+    try:
+        user_settings = UserSettings.objects.get(email=google_mail)
+        user_token = user_settings.user_token
+    except UserSettings.DoesNotExist:
+        user_exists = False
+        # Code if user with given email does not exists
+        input_ = google_mail + google_name
+        # Generate token 8 length token
+        user_token = sha256(input_.encode('utf-8')).hexdigest()[:8]
+        user_settings = UserSettings(user_token=user_token, email=google_mail)
+
+        lvls_str = posted_levels
+        lvls_to_array = literal_eval(lvls_str)
+        for lvl in lvls_to_array:
+            current_cefr_obj = CEFR_Level.objects.get(name=lvl)
+            user_settings.cefrs.add(current_cefr_obj)
+
+        topics_str = posted_topics
+        topics_to_array = literal_eval(topics_str)
+
+        for topic in topics_to_array:
+            current_topic_obj = Topic.objects.get(name=topic)
+            user_settings.topics.add(current_topic_obj)
+
+        user_settings.save()
+
+    arr_for_deploy = {
+        'user_exists': user_exists, 
+        'user_token': user_token
+    }
+
     context = {
         'data': json.dumps(arr_for_deploy)
     }

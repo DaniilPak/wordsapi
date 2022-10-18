@@ -25,6 +25,7 @@ urlpatterns = [
     path('misc/topics', views.get_all_topic, name='gettopics'),
     path('auth/emailexists/<str:email>', views.check_if_email_exists, name='emailexits'),
     path('auth/login', views.auth_into_existing_account, name='authaccount'),
+    path('auth/authviagoogle', views.auth_via_google, name="authviagoogle"),
     path('my/getmorewords', views.get_more_words, name='getmorewords'),
 
     # Record passed subcourse
