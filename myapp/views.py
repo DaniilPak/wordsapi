@@ -1,3 +1,4 @@
+from http import server
 from django.http import HttpResponse, JsonResponse
 from django.shortcuts import render
 from .models import *
@@ -1057,26 +1058,13 @@ def get_craft(request, craft_id):
         craft.append(card_json_object)
 
     # Iterate over Video Objects again for tests
+    choices = list()
+
     for video_obj in valid_json_video_objects:
-        # Handling server choice 1
-        server_choice_1_obj = ServerChoice.objects.get(id=video_obj['server_choice_1'])
-        # Fixint to JSON representation
-        server_choice_1_json = serializers.serialize('python', [server_choice_1_obj])
-
-        # Handling server choice 2
-        server_choice_2_obj = ServerChoice.objects.get(id=video_obj['server_choice_2'])
-        # Fixint to JSON representation
-        server_choice_2_json = serializers.serialize('python', [server_choice_2_obj])
-
-        # Handling server choice 3
-        server_choice_3_obj = ServerChoice.objects.get(id=video_obj['server_choice_3'])
-        # Fixint to JSON representation
-        server_choice_3_json = serializers.serialize('python', [server_choice_3_obj])
-
-        # Handling server choice 2
-        server_choice_4_obj = ServerChoice.objects.get(id=video_obj['server_choice_4'])
-        # Fixint to JSON representation
-        server_choice_4_json = serializers.serialize('python', [server_choice_4_obj])
+        for sc in video_obj['server_choices']:
+            server_choice = ServerChoice.objects.get(pk=sc)
+            ss = serializers.serialize('python', [server_choice])
+            choices.append(ss[0]['fields'])
 
         # Setting up vtest data
         test_json_object = {
@@ -1085,10 +1073,7 @@ def get_craft(request, craft_id):
             'eng_text': video_obj['eng_text'],
             'ru_text': video_obj['ru_text'],
             'tip': video_obj['tip'],
-            'server_choice_1': server_choice_1_json[0]['fields'],
-            'server_choice_2': server_choice_2_json[0]['fields'],
-            'server_choice_3': server_choice_3_json[0]['fields'],
-            'server_choice_4': server_choice_4_json[0]['fields'],
+            'server_choices': choices,
         }  
 
         # Final setting Videotest data to craft

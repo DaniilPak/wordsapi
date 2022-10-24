@@ -1,5 +1,6 @@
 from pyexpat import model
 from unicodedata import name
+from xmlrpc.client import Server
 from django.db import models
 from django.contrib.auth.models import User
 
@@ -140,10 +141,7 @@ class VideoObject(models.Model):
     tip = models.CharField(max_length=200)
     eng_text = models.CharField(max_length=200)
     ru_text = models.CharField(max_length=200)
-    server_choice_1 = models.ForeignKey(ServerChoice, on_delete=models.CASCADE, related_name='sc1')
-    server_choice_2 = models.ForeignKey(ServerChoice, on_delete=models.CASCADE, related_name='sc2')
-    server_choice_3 = models.ForeignKey(ServerChoice, on_delete=models.CASCADE, related_name='sc3')
-    server_choice_4 = models.ForeignKey(ServerChoice, on_delete=models.CASCADE, related_name='sc4')
+    server_choices = models.ManyToManyField(ServerChoice, blank=True)
 
     def __str__(self) -> str:
         return '%s' % (self.id)
