@@ -1,5 +1,4 @@
-import email
-from django.http import HttpResponse
+from django.http import HttpResponse, JsonResponse
 from django.shortcuts import render
 from .models import *
 
@@ -7,9 +6,6 @@ from .models import *
 # django data to JSON
 # import requests
 import json
-
-# Used to load words
-import csv
 
 # Import to get random amount of words
 import random
@@ -89,11 +85,7 @@ def register_new_user(request):
         'user_token': user_token
     }
 
-    context = {
-        'user_token_list': json.dumps(user_token_list),
-    }
-
-    return render(request, 'myapp/get_user_token.html', context)
+    return JsonResponse(user_token_list, safe=False)
 
 def index(request, token):
     # Get user's settings by token
@@ -182,12 +174,7 @@ def index(request, token):
 
         fixed_oxford_words.append(item['fields'])
 
-    # Final deploy
-    context = {
-        'data': json.dumps(fixed_oxford_words)
-    }
-
-    return render(request, 'myapp/index.html', context)
+    return JsonResponse(fixed_oxford_words, safe=False)
 
 # This view gets learned words 
 # and sets to UserSettings accountant
@@ -279,12 +266,7 @@ def get_more_words(request):
         fixed_oxford_words.append(item['fields'])
 
 
-    # Final deploy
-    context = {
-        'data': json.dumps(fixed_oxford_words)
-    }
-
-    return render(request, 'myapp/index.html', context)
+    return JsonResponse(fixed_oxford_words, safe=False)
 
 @csrf_exempt
 def save_learned_words(request):
@@ -391,12 +373,7 @@ def my_word(request):
 
         fixed_oxford_words.append(item['fields'])
 
-    # Final deploy
-    context = {
-        'data': json.dumps(fixed_oxford_words)
-    }
-
-    return render(request, 'myapp/index.html', context)
+    return JsonResponse(fixed_oxford_words, safe=False)
 
 # API Repeat word
 
@@ -466,12 +443,7 @@ def repeat_words(request):
 
         fixed_oxford_words.append(item['fields'])
 
-    # Final deploy
-    context = {
-        'data': json.dumps(fixed_oxford_words)
-    }
-
-    return render(request, 'myapp/index.html', context)
+    return JsonResponse(fixed_oxford_words, safe=False)
 
 # Hard words 
 
@@ -524,12 +496,7 @@ def hard_word(request):
 
         fixed_oxford_words.append(item['fields'])
 
-    # Final deploy
-    context = {
-        'data': json.dumps(fixed_oxford_words)
-    }
-
-    return render(request, 'myapp/index.html', context)
+    return JsonResponse(fixed_oxford_words, safe=False)
 
 # User Settings changing after registration
 
@@ -625,12 +592,7 @@ def get_users_topic(request):
     # JSON object will have checked boolean true, if 
     # Topic already choosed by user
 
-    # Final deploy
-    context = {
-        'data': json.dumps(fixed_topics)
-    }
-
-    return render(request, 'myapp/index.html', context)
+    return JsonResponse(fixed_topics, safe=False)
 
 # Get users topics
 def get_users_level(request):
@@ -662,12 +624,7 @@ def get_users_level(request):
     # JSON object will have checked boolean true, if 
     # Topic already choosed by user
 
-    # Final deploy
-    context = {
-        'data': json.dumps(fixed_levels)
-    }
-
-    return render(request, 'myapp/index.html', context)
+    return JsonResponse(fixed_levels, safe=False)
 
 # Get users words amount 
 def get_users_my_words_amount(request):
@@ -683,12 +640,7 @@ def get_users_my_words_amount(request):
         'count': mywords_count
     }
 
-    # Final deploy
-    context = {
-        'data': json.dumps(arr_for_deploy)
-    }
-
-    return render(request, 'myapp/index.html', context)
+    return JsonResponse(arr_for_deploy, safe=False)
 
 # Get users repeat words amount 
 def get_users_repeat_words_amount(request):
@@ -717,12 +669,7 @@ def get_users_repeat_words_amount(request):
         'count': timeleft_words
     }
 
-    # Final deploy
-    context = {
-        'data': json.dumps(arr_for_deploy)
-    }
-
-    return render(request, 'myapp/index.html', context)
+    return JsonResponse(arr_for_deploy, safe=False)
 
 # Get users repeat words amount 
 def get_users_hard_words_amount(request):
@@ -738,12 +685,7 @@ def get_users_hard_words_amount(request):
         'count': mywords_count
     }
 
-    # Final deploy
-    context = {
-        'data': json.dumps(arr_for_deploy)
-    }
-
-    return render(request, 'myapp/index.html', context)
+    return JsonResponse(arr_for_deploy, safe=False)
 
 
 ### Get repeated words, and increase their interval ###
@@ -844,12 +786,7 @@ def get_all_level(request):
     # JSON object will have checked boolean true, if 
     # Topic already choosed by user
 
-    # Final deploy
-    context = {
-        'data': json.dumps(fixed_levels)
-    }
-
-    return render(request, 'myapp/index.html', context)
+    return JsonResponse(fixed_levels, safe=False)
 
 # Get users topics
 def get_all_topic(request):
@@ -868,12 +805,7 @@ def get_all_topic(request):
     # JSON object will have checked boolean true, if 
     # Topic already choosed by user
 
-    # Final deploy
-    context = {
-        'data': json.dumps(fixed_topics)
-    }
-
-    return render(request, 'myapp/index.html', context)
+    return JsonResponse(fixed_topics, safe=False)
 
 
 # Get dummy words
@@ -927,12 +859,7 @@ def get_dummy(request):
 
         fixed_oxford_words.append(item['fields'])
 
-    # Final deploy
-    context = {
-        'data': json.dumps(fixed_oxford_words)
-    }
-
-    return render(request, 'myapp/index.html', context)
+    return JsonResponse(fixed_oxford_words, safe=False)
 
 '''
 Registration stuff:
@@ -955,12 +882,7 @@ def check_if_email_exists(request, email):
         'email_exists': isExists
     }
 
-    # Final deploy
-    context = {
-        'data': json.dumps(arr_for_deploy)
-    }
-
-    return render(request, 'myapp/index.html', context)
+    return JsonResponse(arr_for_deploy, safe=False)
 
 def auth_into_existing_account(request):
 
@@ -989,12 +911,7 @@ def auth_into_existing_account(request):
         'user_token': user_token
     }
 
-    # Final deploy
-    context = {
-        'data': json.dumps(arr_for_deploy)
-    }
-
-    return render(request, 'myapp/index.html', context)
+    return JsonResponse(arr_for_deploy, safe=False)
 
 def auth_via_google(request):
     '''
@@ -1041,11 +958,7 @@ def auth_via_google(request):
         'user_token': user_token
     }
 
-    context = {
-        'data': json.dumps(arr_for_deploy)
-    }
-
-    return render(request, 'myapp/index.html', context)
+    return JsonResponse(arr_for_deploy, safe=False)
 
 ### COURSES ###
 
@@ -1102,10 +1015,7 @@ def index_courses(request, token):
         # Saving all processed data to future json object
         courses_fixed_json.append(item['fields'])
  
-    context = {
-        'data': json.dumps(courses_fixed_json),
-    }
-    return render(request, 'myapp/index.html', context)
+    return JsonResponse(courses_fixed_json, safe=False)
 
 # Get Video Object and craft a 
 # course with given object's data
@@ -1198,11 +1108,7 @@ def get_craft(request, craft_id):
         # append result of crafted parts
         craft.append(part_json_object)
 
-    context = {
-        'data': json.dumps(craft),
-    }
-
-    return render(request, 'myapp/index.html', context)
+    return JsonResponse(craft, safe=False)
 
 # Save passed course 
 
