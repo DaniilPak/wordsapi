@@ -1058,9 +1058,8 @@ def get_craft(request, craft_id):
         craft.append(card_json_object)
 
     # Iterate over Video Objects again for tests
-    choices = list()
-
     for video_obj in valid_json_video_objects:
+        choices = list()
         for sc in video_obj['server_choices']:
             server_choice = ServerChoice.objects.get(pk=sc)
             ss = serializers.serialize('python', [server_choice])
