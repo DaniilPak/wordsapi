@@ -88,6 +88,92 @@ def register_new_user(request):
 
     return JsonResponse(user_token_list, safe=False)
 
+@csrf_exempt
+def auth_via_google(request):
+    # Getting POSTed data
+    email = request.POST['googlemail']
+    password = request.POST['googlename']
+
+    # Getting POSTed topics and levels
+    posted_topics = request.POST['topics']
+    posted_levels = request.POST['levels']
+
+    user_token = ''
+
+    try:
+        user_settings = UserSettings.objects.get(email=email)
+        user_token = user_settings.user_token
+    except UserSettings.DoesNotExist:
+        # concat email & pass to create a sha256
+        input_ = email + password
+
+        # Generate token 8 length token
+        user_token = sha256(input_.encode('utf-8')).hexdigest()[:8]
+
+        # Create UserSettings and set user token
+        user_settings = UserSettings(user_token=user_token, email=email)
+        # Record user's email
+        user_settings.save()
+
+        # Digest given array in str format
+        # Levels and Topics given:
+        # This format ['A1', 'B1', 'C2']
+        lvls_str = posted_levels
+        # Converting string to python array
+        lvls_to_array = literal_eval(lvls_str)
+        # Iterating over this array to get the real objects
+        for lvl in lvls_to_array:
+            current_cefr_obj = CEFR_Level.objects.get(name=lvl)
+            # Finally adding Cefr to user settings object
+            user_settings.cefrs.add(current_cefr_obj)
+
+        # Now the topics time
+        # This format ['RUS', 'GER', 'FRA']
+        topics_str = posted_topics
+        topics_to_array = literal_eval(topics_str)
+
+        for topic in topics_to_array:
+            current_topic_obj = Topic.objects.get(name=topic)
+            user_settings.topics.add(current_topic_obj)
+
+
+    # Giving user_token to user
+    user_token_list = {
+        'user_token': user_token
+    }
+
+    return JsonResponse(user_token_list, safe=False)
+
+
+def auth_into_existing_account(request):
+
+    email = request.POST['email']
+    password = request.POST['password']
+
+    # concat email & pass to create a sha256
+    input_ = email + password
+
+    # Generate token 8 length token
+    given_sha256 = sha256(input_.encode('utf-8')).hexdigest()[:8]
+
+    # Check if that token exists in system
+    isCredentialsCorrect = True
+    user_token = ''
+
+    try:
+        user_settings = UserSettings.objects.get(user_token=given_sha256)
+        user_token = user_settings.user_token
+    except UserSettings.DoesNotExist:
+        isCredentialsCorrect = False
+        user_token = 'notexist'
+
+    arr_for_deploy = {
+        'email_exists': isCredentialsCorrect,
+        'user_token': user_token
+    }
+
+    return JsonResponse(arr_for_deploy, safe=False)
+
 def index(request, token):
     # Get user's settings by token
     user_settings = UserSettings.objects.get(user_token=token)
@@ -881,82 +967,6 @@ def check_if_email_exists(request, email):
 
     arr_for_deploy = {
         'email_exists': isExists
-    }
-
-    return JsonResponse(arr_for_deploy, safe=False)
-
-def auth_into_existing_account(request):
-
-    email = request.POST['email']
-    password = request.POST['password']
-
-    # concat email & pass to create a sha256
-    input_ = email + password
-
-    # Generate token 8 length token
-    given_sha256 = sha256(input_.encode('utf-8')).hexdigest()[:8]
-
-    # Check if that token exists in system
-    isCredentialsCorrect = True
-    user_token = ''
-
-    try:
-        user_settings = UserSettings.objects.get(user_token=given_sha256)
-        user_token = user_settings.user_token
-    except UserSettings.DoesNotExist:
-        isCredentialsCorrect = False
-        user_token = 'notexist'
-
-    arr_for_deploy = {
-        'email_exists': isCredentialsCorrect,
-        'user_token': user_token
-    }
-
-    return JsonResponse(arr_for_deploy, safe=False)
-
-def auth_via_google(request):
-    '''
-    Get user's google email and check if it's already exists
-    if yes: get users existing token and send it
-    if not: create new token and send it
-    '''
-    google_mail = request.POST['googlemail']
-    google_name = request.POST['googlename']
-
-    posted_topics = request.POST['topics']
-    posted_levels = request.POST['levels']
-
-    user_exists = True
-    user_token = ''
-    try:
-        user_settings = UserSettings.objects.get(email=google_mail)
-        user_token = user_settings.user_token
-    except UserSettings.DoesNotExist:
-        user_exists = False
-        # Code if user with given email does not exists
-        input_ = google_mail + google_name
-        # Generate token 8 length token
-        user_token = sha256(input_.encode('utf-8')).hexdigest()[:8]
-        user_settings = UserSettings(user_token=user_token, email=google_mail)
-
-        lvls_str = posted_levels
-        lvls_to_array = literal_eval(lvls_str)
-        for lvl in lvls_to_array:
-            current_cefr_obj = CEFR_Level.objects.get(name=lvl)
-            user_settings.cefrs.add(current_cefr_obj)
-
-        topics_str = posted_topics
-        topics_to_array = literal_eval(topics_str)
-
-        for topic in topics_to_array:
-            current_topic_obj = Topic.objects.get(name=topic)
-            user_settings.topics.add(current_topic_obj)
-
-        user_settings.save()
-
-    arr_for_deploy = {
-        'user_exists': user_exists, 
-        'user_token': user_token
     }
 
     return JsonResponse(arr_for_deploy, safe=False)
