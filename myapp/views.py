@@ -978,7 +978,7 @@ def index_courses(request, token):
     # Fixing Course objects
     for idx, item in enumerate(course_objects_to_json):
         # New stuff
-        current_course = Course.objects.get(id=idx+1)
+        current_course = Course.objects.get(id=item['pk'])
         course_datas = serializers.serialize('python', current_course.data.all())
         item['fields']['section'] = current_course.section
         item['fields']['data'] = course_datas

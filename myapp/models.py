@@ -7,6 +7,12 @@ from django.contrib.auth.models import User
 from datetime import datetime, timezone
 
 # Create your models here.
+class Document(models.Model):
+    doc = models.FileField(upload_to='docs', blank=True)
+
+    def __str__(self):
+        return '%s' % (self.doc)
+
 
 # Example model for examples in Oxford Word
 class OxExample(models.Model):
@@ -101,6 +107,9 @@ class RepeatWord(models.Model):
     countdown = models.DateTimeField(auto_now=True)
     interval = models.IntegerField(blank=True, default=0)
 
+    def __str__(self):
+        return 'Repeat word: %s Interval: %s Countdown: %s' % (self.oxford_word, self.interval, self.countdown)
+
 ### Courses ###
 
 # Sections & Courses & SubCourses
@@ -110,7 +119,7 @@ class SubCourse(models.Model):
     subcourse_title = models.CharField(max_length=100)
     api_link = models.URLField()
 
-    def __repr__(self) -> str:
+    def __str__(self) -> str:
         return 'Subcourse %s id: %s' % (self.subcourse_title, self.id)
 
 class Data(models.Model):
@@ -119,9 +128,15 @@ class Data(models.Model):
     img_uri = models.URLField()
     sub_courses = models.ManyToManyField(SubCourse)
 
+    def __str__(self):
+        return 'Data object #%s of course: %s' % (self.id, self.course_name)
+
 class Course(models.Model):
     section = models.CharField(max_length=100)
     data = models.ManyToManyField(Data, blank=True)
+
+    def __str__(self):
+        return '%s' % (self.section)
     
 # VideoObject that contains all data
 # we need to create a full course
@@ -132,6 +147,9 @@ class Course(models.Model):
 class ServerChoice(models.Model):
     text = models.CharField(max_length=200)
     correct = models.BooleanField()
+
+    def __str__(self) -> str:
+        return '%s %s' % (self.pk, self.text)
 
 # Data from which we will craft 
 # a course
@@ -144,7 +162,7 @@ class VideoObject(models.Model):
     server_choices = models.ManyToManyField(ServerChoice, blank=True)
 
     def __str__(self) -> str:
-        return '%s' % (self.id)
+        return 'Video-object #%s %s' % (self.id, self.eng_text)
 
 # Stack Of VideoObject
 # we will get JSON data from this object
@@ -154,7 +172,7 @@ class CraftStack(models.Model):
     video_objects = models.ManyToManyField(VideoObject, blank=True)
 
     def __str__(self) -> str:
-        return '%s' % (self.id)
+        return 'https://words.paksol.ru/courses/english/craft/%s' % (self.id)
 
 ### User Data holder
 class UserSettings(models.Model):
@@ -179,3 +197,6 @@ class UserSettings(models.Model):
 
     # Passed words
     passed_words = models.ManyToManyField(OxfordWord, blank=True, related_name='passedwords')
+
+    def __str__(self) -> str:
+        return 'Юзер №%s %s' % (self.id, self.email)
