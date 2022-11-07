@@ -4,6 +4,7 @@ from django.urls import path
 from . import views
 
 urlpatterns = [
+    # Words module urls
     path('<str:token>', views.index, name='index'),
     path('reguser/new', views.register_new_user, name='reguser'),
     path('my/saveword', views.save_learned_words, name='saveword'),
@@ -30,13 +31,10 @@ urlpatterns = [
 
     # Record passed subcourse
     path('misc/savesubcourse', views.save_learned_subcourse, name='savelearnedsubcourse'),
-
     # Record passed words
     path('my/savepassedwords', views.save_passed_words, name='savepassedwords'),
-    
-    # path('loadwords', views.loadwords, name='loadwords'),
 
-    ### COURSES ###
+    # Courses module urls
     path('courses/english/<str:token>', views.index_courses, name='courses'),
     path('courses/english/craft/<int:craft_id>', views.get_craft, name='courses_craft'),
 ]

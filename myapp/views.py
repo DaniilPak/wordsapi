@@ -1,3 +1,13 @@
+'''
+███████╗███╗   ██╗ ██████╗ ██╗     ██╗███████╗██╗   ██╗    ██████╗  █████╗  ██████╗██╗  ██╗███████╗███╗   ██╗██████╗ 
+██╔════╝████╗  ██║██╔════╝ ██║     ██║██╔════╝╚██╗ ██╔╝    ██╔══██╗██╔══██╗██╔════╝██║ ██╔╝██╔════╝████╗  ██║██╔══██╗
+█████╗  ██╔██╗ ██║██║  ███╗██║     ██║█████╗   ╚████╔╝     ██████╔╝███████║██║     █████╔╝ █████╗  ██╔██╗ ██║██║  ██║
+██╔══╝  ██║╚██╗██║██║   ██║██║     ██║██╔══╝    ╚██╔╝      ██╔══██╗██╔══██║██║     ██╔═██╗ ██╔══╝  ██║╚██╗██║██║  ██║
+███████╗██║ ╚████║╚██████╔╝███████╗██║██║        ██║       ██████╔╝██║  ██║╚██████╗██║  ██╗███████╗██║ ╚████║██████╔╝
+╚══════╝╚═╝  ╚═══╝ ╚═════╝ ╚══════╝╚═╝╚═╝        ╚═╝       ╚═════╝ ╚═╝  ╚═╝ ╚═════╝╚═╝  ╚═╝╚══════╝╚═╝  ╚═══╝╚═════╝ 
+                                                                                                                     
+'''
+
 from http import server
 from django.http import HttpResponse, JsonResponse
 from django.shortcuts import render
@@ -46,7 +56,7 @@ def register_new_user(request):
 
     # Getting POSTed topics and levels
     posted_topics = request.POST['topics']
-    posted_levels = request.POST['levels']
+    dif_name = request.POST['difname']
 
     # concat email & pass to create a sha256
     input_ = email + password
@@ -54,22 +64,12 @@ def register_new_user(request):
     # Generate token 8 length token
     user_token = sha256(input_.encode('utf-8')).hexdigest()[:8]
 
+    # Handle choosen difficulty
+    dif = Difficulty.objects.get(name=dif_name)
     # Create UserSettings and set user token
-    user_settings = UserSettings(user_token=user_token, email=email)
+    user_settings = UserSettings(user_token=user_token, email=email, dif=dif)
     # Record user's email
     user_settings.save()
-
-    # Digest given array in str format
-    # Levels and Topics given:
-    # This format ['A1', 'B1', 'C2']
-    lvls_str = posted_levels
-    # Converting string to python array
-    lvls_to_array = literal_eval(lvls_str)
-    # Iterating over this array to get the real objects
-    for lvl in lvls_to_array:
-        current_cefr_obj = CEFR_Level.objects.get(name=lvl)
-        # Finally adding Cefr to user settings object
-        user_settings.cefrs.add(current_cefr_obj)
 
     # Now the topics time
     # This format ['RUS', 'GER', 'FRA']
@@ -96,7 +96,7 @@ def auth_via_google(request):
 
     # Getting POSTed topics and levels
     posted_topics = request.POST['topics']
-    posted_levels = request.POST['levels']
+    dif_name = request.POST['difname']
 
     user_token = ''
 
@@ -110,22 +110,12 @@ def auth_via_google(request):
         # Generate token 8 length token
         user_token = sha256(input_.encode('utf-8')).hexdigest()[:8]
 
+        # Handle choosen difficulty
+        dif = Difficulty.objects.get(name=dif_name)
         # Create UserSettings and set user token
-        user_settings = UserSettings(user_token=user_token, email=email)
+        user_settings = UserSettings(user_token=user_token, email=email, dif=dif)
         # Record user's email
         user_settings.save()
-
-        # Digest given array in str format
-        # Levels and Topics given:
-        # This format ['A1', 'B1', 'C2']
-        lvls_str = posted_levels
-        # Converting string to python array
-        lvls_to_array = literal_eval(lvls_str)
-        # Iterating over this array to get the real objects
-        for lvl in lvls_to_array:
-            current_cefr_obj = CEFR_Level.objects.get(name=lvl)
-            # Finally adding Cefr to user settings object
-            user_settings.cefrs.add(current_cefr_obj)
 
         # Now the topics time
         # This format ['RUS', 'GER', 'FRA']
@@ -187,8 +177,8 @@ def index(request, token):
         topics.append(topic)
     
     # Iterate over cefrs
-    for level in user_settings.cefrs.all():
-        cefrs.append(level)
+    for c in user_settings.dif.cefr.all():
+        cefrs.append(c)
 
     # Handle passed words and filter them by levels and topics
     passed_words = user_settings.passed_words.all().filter(CEFR__in=cefrs, topic__in=topics)
@@ -269,34 +259,25 @@ def index(request, token):
 # Get More words to Flat List
 @csrf_exempt
 def get_more_words(request):
-
     # GET token 
     token = request.POST['token']
-
     # Get array of learned words
     learned_ids = request.POST['learned']
-    
     # Handle current UserSettings object by token
     user_settings = UserSettings.objects.get(user_token=token)
-
     # Format array with words
     learned_ids_to_array = literal_eval(learned_ids)
-
     # Get array of topics from userSettings
     topics = []
     cefrs = []
-
     # Iterate over topics
     for topic in user_settings.topics.all():
         topics.append(topic)
-    
     # Iterate over cefrs
-    for level in user_settings.cefrs.all():
-        cefrs.append(level)
-
+    for c in user_settings.dif.cefr.all():
+        cefrs.append(c)
     # Id not in learned ids to array
     filtered_oxs = OxfordWord.objects.filter(~Q(id__in=learned_ids_to_array))
-    
     items = list(filtered_oxs.filter(CEFR__in=cefrs, topic__in=topics))
 
     # change 3 to how many random items you want
@@ -308,13 +289,10 @@ def get_more_words(request):
     # What if item lenght is less that 10?
     # Do this logic:
     objects_amount = len(items) if len(items) < 10 else 10
-
     # change num to take exact amount
     words_taken_from_api = random.sample(items, objects_amount)
-
     # Convert to JSON
     django_to_json_object = serializers.serialize('python', words_taken_from_api)
-
     # Future JSON object
     fixed_oxford_words = list()
 
@@ -351,7 +329,6 @@ def get_more_words(request):
         item['fields']['id'] = item['pk']
 
         fixed_oxford_words.append(item['fields'])
-
 
     return JsonResponse(fixed_oxford_words, safe=False)
 
@@ -591,30 +568,13 @@ def hard_word(request):
 def change_level(request):
     # GET token
     token = request.POST['token']
-
     # Get new levels array (str format)
-    new_levels = request.POST['levels']
-
+    new_dif_name = request.POST['difname']
+    new_dif = Difficulty.objects.get(name=new_dif_name)
     # Handle current UserSettings object by token
     user_settings = UserSettings.objects.get(user_token=token)
-
-    # Digest given array in str format
-    # Levels and Topics given:
-    # This format ['A1', 'B1', 'C2']
-    lvls_str = new_levels
-
-    # Converting string to python array
-    lvls_to_array = literal_eval(lvls_str)
-
-    # Clear levels in UserSettings
-    user_settings.cefrs.clear()
-
-    # Iterating over this array to get the real objects
-    for lvl in lvls_to_array:
-        current_cefr_obj = CEFR_Level.objects.get(name=lvl)
-        # Finally adding Cefr to user settings object
-        user_settings.cefrs.add(current_cefr_obj)
-
+    user_settings.dif = new_dif
+    user_settings.save()
     # Formality
     return HttpResponse("Query complete.")
 
@@ -672,7 +632,6 @@ def get_users_topic(request):
                 checked = True
 
         topic = Topic.objects.get(name=item['fields']['name'])
-        item['fields']['repr'] = topic.get_name_display()
         item['fields']['checked'] = checked
         fixed_topics.append(item['fields'])
 
@@ -685,32 +644,23 @@ def get_users_topic(request):
 def get_users_level(request):
     # GET token
     token = request.GET['token']
-
     # Handle current UserSettings object by token
     user_settings = UserSettings.objects.get(user_token=token)
-    user_cefrs = user_settings.cefrs.all()
-
-    all_cefrs = CEFR_Level.objects.all()
-
+    user_dif = user_settings.dif
+    all_difs = Difficulty.objects.all()
     # Future JSON object
     fixed_levels = list()
-
     # Processing each object
-    for idx, item in enumerate(serializers.serialize('python', all_cefrs)):
+    for idx, item in enumerate(serializers.serialize('python', all_difs)):
         # Check if my topic checked in all topics
         checked = False
-        for ul in user_cefrs:
-            if ul.name == item['fields']['name']:
-                checked = True
+        if user_dif.name == item['fields']['name']:
+            checked = True
 
-        topic = CEFR_Level.objects.get(name=item['fields']['name'])
-        item['fields']['repr'] = topic.get_name_display()
         item['fields']['checked'] = checked
         fixed_levels.append(item['fields'])
-
     # JSON object will have checked boolean true, if 
     # Topic already choosed by user
-
     return JsonResponse(fixed_levels, safe=False)
 
 # Get users words amount 
@@ -780,22 +730,16 @@ def get_users_hard_words_amount(request):
 def renew_repeated_words(request):
     # GET token 
     token = request.POST['token']
-
     # Get array of repeated words
     repeated_ids = request.POST['repeated']
-
     # Format array with words
     repeated_ids_to_array = literal_eval(repeated_ids)
-
     # Transform word ids to real objects
     repeated_words_objects = OxfordWord.objects.filter(Q(id__in=repeated_ids_to_array))
-    
     # Handle current UserSettings object by token
     user_settings = UserSettings.objects.get(user_token=token)
-
     # Get repeat words using filter by ids
-    user_settings.repeat_words.all().filter(Q(oxford_word__in=repeated_words_objects)).update(interval=F('interval') + 1)
-
+    user_settings.repeat_words.all().filter(Q(oxford_word__in=repeated_words_objects)).update(interval=F('interval') + 1, countdown=datetime.now())
     # End of story
 
     return HttpResponse("Query complete.")
@@ -858,37 +802,27 @@ def delete_hard_words(request):
 
 # Get all level (for registration)
 def get_all_level(request):
-
-    all_cefrs = CEFR_Level.objects.all()
-
+    all_cefrs = Difficulty.objects.all()
     # Future JSON object
     fixed_levels = list()
-
     # Processing each object
     for idx, item in enumerate(serializers.serialize('python', all_cefrs)):
-        topic = CEFR_Level.objects.get(name=item['fields']['name'])
-        item['fields']['repr'] = topic.get_name_display()
+        diff = Difficulty.objects.get(name=item['fields']['name'])
         fixed_levels.append(item['fields'])
 
     # JSON object will have checked boolean true, if 
     # Topic already choosed by user
-
     return JsonResponse(fixed_levels, safe=False)
 
 # Get users topics
 def get_all_topic(request):
-
     all_topics = Topic.objects.all()
-
     # Future JSON object
     fixed_topics = list()
-
     # Processing each object
     for idx, item in enumerate(serializers.serialize('python', all_topics)):
         topic = Topic.objects.get(name=item['fields']['name'])
-        item['fields']['repr'] = topic.get_name_display()
         fixed_topics.append(item['fields'])
-
     # JSON object will have checked boolean true, if 
     # Topic already choosed by user
 

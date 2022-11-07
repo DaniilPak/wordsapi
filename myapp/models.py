@@ -59,7 +59,6 @@ class OxfordWord(models.Model):
 # Words data
 
 class Topic(models.Model):
-
     name = models.CharField(max_length=100,
     # All themes are here, to add a new one, 
     # we start from here
@@ -81,12 +80,13 @@ class Topic(models.Model):
             ('Travel', 'Путешествия'),
             ('Work and business', 'Работа и бизнес'),
         ])
+    title = models.CharField(max_length=25, blank=True)
+    emoji = models.CharField(max_length=10, blank=True)
 
     def __str__(self):
         return '%s' % (self.name)
 
 class CEFR_Level(models.Model):
-
     name = models.CharField(max_length=2,
     # All levels 
     choices=[
@@ -174,27 +174,39 @@ class CraftStack(models.Model):
     def __str__(self) -> str:
         return 'https://words.paksol.ru/courses/english/craft/%s' % (self.id)
 
+
+class Difficulty(models.Model):
+    name = models.CharField(max_length=3,
+    # All levels 
+    choices=[
+        ('BEG', 'Beginner'),
+        ('INT', 'Intermediate'),
+        ('ADV', 'Advanced'),
+    ])
+    title = models.CharField(max_length=25, blank=True)
+    desc = models.CharField(max_length=50, blank=True)
+    emoji = models.CharField(max_length=10, blank=True)
+    cefr = models.ManyToManyField(CEFR_Level, blank=True)
+
+    def __str__(self) -> str:
+        return '%s id: %s' % (self.name, self.pk)
+
 ### User Data holder
 class UserSettings(models.Model):
-
     user_token = models.CharField(max_length=256)
     email = models.CharField(max_length=256, blank=True)
     topics = models.ManyToManyField(Topic, blank=True)
     cefrs = models.ManyToManyField(CEFR_Level, blank=True)
-
+    dif = models.ForeignKey(Difficulty, null=True, blank=True, on_delete=models.CASCADE)
     # Saved words
     # (Which are learned by user)
     learned_words = models.ManyToManyField(OxfordWord, blank=True)
-
     # Time to Repeat words
     repeat_words = models.ManyToManyField(RepeatWord, blank=True, related_name='repeatwords')
-
     # Hard words
     hard_words = models.ManyToManyField(OxfordWord, blank=True, related_name='hardwords')
-
     # Subcourses that user already learned
     learned_courses = models.ManyToManyField(SubCourse, blank=True, related_name='learnedcourses')
-
     # Passed words
     passed_words = models.ManyToManyField(OxfordWord, blank=True, related_name='passedwords')
 
