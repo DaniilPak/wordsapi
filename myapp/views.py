@@ -15,7 +15,7 @@ from .models import *
 
 # Import to process
 # django data to JSON
-# import requests
+import requests
 import json
 
 # Import to get random amount of words
@@ -44,6 +44,42 @@ from django.views.decorators.csrf import csrf_exempt
 from datetime import datetime, timezone, timedelta
 
 # Create your views here.
+
+# Validate payments via receipts
+@csrf_exempt
+def validate(request):
+    token = request.POST['token']
+    receipt = request.POST['receipt']
+
+    account = UserSettings.objects.get(user_token=token)
+    access = False
+    if account.moder:
+        access = True
+        
+    url = 'https://sandbox.itunes.apple.com/verifyReceipt'
+    myjson = {
+        "receipt-data": receipt,
+        "password": "9277a932d5a9456dbc7126169564e00b",
+        "exclude-old-transactions": True
+    }
+
+    x = requests.post(url, json = myjson)
+
+    response = x.json()['receipt']['in_app']
+
+    my_list = list()
+    for r in response:
+        my_list.append(r['expires_date_ms'])
+
+    my_list.sort(reverse=True)
+
+    # Giving user_token to user
+    user_token_list = {
+        'latest_expires_date': my_list[0],
+        'access': access,
+    }
+
+    return JsonResponse(user_token_list, safe=False)
 
 # Register, Login, Saving Progress
 
@@ -130,6 +166,27 @@ def auth_via_google(request):
     # Giving user_token to user
     user_token_list = {
         'user_token': user_token
+    }
+
+    return JsonResponse(user_token_list, safe=False)
+
+@csrf_exempt
+def check_account_google(request):
+    # Getting POSTed data
+    email = request.GET['googlemail']
+    account_exists = False
+    user_token = ''
+    try:
+        google_account = UserSettings.objects.get(email=email)
+        user_token = google_account.user_token
+        account_exists = True
+    except UserSettings.DoesNotExist:
+        user_token = 'notexist'
+
+    # Giving user_token to user
+    user_token_list = {
+        'account_exists': account_exists,
+        'user_token': user_token,
     }
 
     return JsonResponse(user_token_list, safe=False)
@@ -1055,4 +1112,3 @@ def save_learned_subcourse(request):
     user_settings.save()
 
     return HttpResponse('Query complete!')
-

@@ -194,9 +194,9 @@ class Difficulty(models.Model):
 ### User Data holder
 class UserSettings(models.Model):
     user_token = models.CharField(max_length=256)
+    moder = models.BooleanField(default=False)
     email = models.CharField(max_length=256, blank=True)
     topics = models.ManyToManyField(Topic, blank=True)
-    cefrs = models.ManyToManyField(CEFR_Level, blank=True)
     dif = models.ForeignKey(Difficulty, null=True, blank=True, on_delete=models.CASCADE)
     # Saved words
     # (Which are learned by user)

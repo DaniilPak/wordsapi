@@ -27,6 +27,7 @@ urlpatterns = [
     path('auth/emailexists/<str:email>', views.check_if_email_exists, name='emailexits'),
     path('auth/login', views.auth_into_existing_account, name='authaccount'),
     path('auth/authviagoogle', views.auth_via_google, name="authviagoogle"),
+    path('auth/checkgoogleaccount', views.check_account_google, name='checkaccountgoogle'),
     path('my/getmorewords', views.get_more_words, name='getmorewords'),
 
     # Record passed subcourse
@@ -37,4 +38,7 @@ urlpatterns = [
     # Courses module urls
     path('courses/english/<str:token>', views.index_courses, name='courses'),
     path('courses/english/craft/<int:craft_id>', views.get_craft, name='courses_craft'),
+
+    # Payments
+    path('pay/validate_receipt', views.validate, name='validate'),
 ]
